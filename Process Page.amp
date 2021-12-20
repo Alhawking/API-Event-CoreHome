@@ -53,8 +53,8 @@
             Redirect('https://www.google.com',true);
         }
     } catch (e) {
-        //Write(Stringify(e));
-        Redirect('https://cloud.marketing.corehome.mx/001-core-aliados-error',true);
+        Write(Stringify(e));
+        //Redirect('https://cloud.marketing.corehome.mx/001-core-aliados-error',true);
     }
     function retrievetoken(){
         var oldToken = Variable.GetValue("@oldToken");

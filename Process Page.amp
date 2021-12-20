@@ -18,7 +18,7 @@
         SET @expirationDate = Field(@rowResult,'ExpirationDate')
     ENDIF
 ]%%
-<script runat="server">x
+<script runat="server">
     Platform.Load("Core","1.1.1");
         var tenantId = Variable.GetValue("@tenantId");
         var config = {

@@ -1,0 +1,103 @@
+<!-- Recuperación de datos del formulario y accesos -->
+%%[
+    SET @firstName = RequestParameter('firstName')
+    SET @lastName = RequestParameter('lastName')
+    SET @email = RequestParameter('email')
+    SET @phone = RequestParameter('celular')
+    set @DE = '003-core-b2b-arquitectos-disenadores'
+    SET @record = LookupRows(@DE,'Correo',@email)
+    IF RowCount(@record) > 0 THEN 
+        Redirect(CloudPagesURL(210))
+    ELSE
+        SET @lookup = LookUpRows('APIIntegrations','Nombre','API Event Aliados')
+        SET @rowResult = Row(@lookup,1)
+        SET @clientId = Base64Decode(Field(@rowResult,'Client Id'),'UTF-8')
+        SET @clientSecret = Base64Decode(Field(@rowResult,'Client Secret'),'UTF-8')
+        SET @tenantId = Field(@rowResult,'Tenant Id')
+        SET @oldToken = Base64Decode(Field(@rowResult,'Token'),'UTF-8')
+        SET @expirationDate = Field(@rowResult,'ExpirationDate')
+    ENDIF
+]%%
+<script runat="server">x
+    Platform.Load("Core","1.1.1");
+        var tenantId = Variable.GetValue("@tenantId");
+        var config = {
+            endpoint: "https://"+tenantId+".auth.marketingcloudapis.com/v2/token",
+            localDate:  DateTime.SystemDateToLocalDate(Now())
+        }
+    try {
+         //fetch posted data
+        var firstName = Platform.Request.GetFormField("firstName");
+        var lastName = Platform.Request.GetFormField("lastName");
+        var email = Platform.Request.GetFormField("email");
+        var phone = Platform.Request.GetFormField("celular");
+        //prepare data for API call
+        var result = retrievetoken();
+        var headerNames = ["Authorization"];
+        var headerValues = ["Bearer " + result.token];
+        var jsonBody = {
+            "ContactKey":email,
+            "EventDefinitionKey":"APIEvent-60b7b831-ccbd-d8b8-c369-349af19e8d18",
+            "Data":{
+                "Nombre":firstName,
+                "Apellido":lastName,
+                "Correo":email,
+                "Celular":phone
+            }
+        };
+        var resp = HTTP.Post('https://mc3bnyj1wyz-ngdxnqpgc4gn8j1y.rest.marketingcloudapis.com/interaction/v1/events', "application/json", Stringify(jsonBody), headerNames, headerValues);
+        Write(resp)
+    } catch (e) {
+        Write(Stringify(e));
+    }
+    function retrievetoken(){
+        var oldToken = Variable.GetValue("@oldToken");
+        var expirationDate = Variable.GetValue("@expirationDate");
+        if(oldToken != null && (new Date(config.localDate) < new Date(expirationDate))){
+            return {
+                "token":Variable.GetValue("@oldToken"),
+                "url":"https://"+tenantId+".rest.marketingcloudapis.com/",
+                "expires":expirationDate
+            }
+        }else{
+            var result = requestToken();
+            var upsert = storeToken(result);
+            return result
+        }
+    }
+    function requestToken(){
+        var payload = {
+            "grant_type": "client_credentials",
+            "client_id": Variable.GetValue("@clientId"),
+            "client_secret": Variable.GetValue("@clientSecret")
+        }
+        var request = HTTP.Post(config.endpoint,"application/json",Stringify(payload));
+        if(request.StatusCode == 200){
+            var result = Platform.Function.ParseJSON(request.Response[0]);
+            var parsedDate = new Date(config.localDate);
+            var expirationDate = new Date(parsedDate.getTime() + (result.expires_in * 1000));
+            return {
+                token: result.access_token,
+                url: result.rest_instance_url,
+                expires: expirationDate
+            }
+        }
+    }
+    function storeToken(result){
+        var rows = Platform.Function.UpsertData(
+            'APIIntegrations',
+            ["Nombre"],["CVs"],
+            ["Token","ExpirationDate"],[encrypt(result.token),result.expires]
+        )
+    }
+    function encrypt(str) {
+        Variable.SetValue("@ToEncrypt", str)
+        var scr = "";
+        scr += "\%\%[";
+        scr += "SET @Encrypted = Base64Encode(@ToEncrypt, 'UTF-8')";
+        scr += "Output(Concat(@Encrypted))";
+        scr += "]\%\%";
+
+        return Platform.Function.TreatAsContent(scr);
+    }
+</script>

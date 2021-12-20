@@ -46,7 +46,7 @@
             }
         };
         var resp = HTTP.Post('https://mc3bnyj1wyz-ngdxnqpgc4gn8j1y.rest.marketingcloudapis.com/interaction/v1/events', "application/json", Stringify(jsonBody), headerNames, headerValues);
-        if(resp.StatusCode == 200) {
+        if(resp.StatusCode == 201) {
             Redirect('https://cloud.marketing.corehome.mx/001-core-aliados-gracias',true);
         }
         else {
@@ -54,7 +54,7 @@
         }
     } catch (e) {
         Write(Stringify(e));
-        //Redirect('https://cloud.marketing.corehome.mx/001-core-aliados-error',true);
+        Redirect('https://cloud.marketing.corehome.mx/001-core-aliados-error',true);
     }
     function retrievetoken(){
         var oldToken = Variable.GetValue("@oldToken");

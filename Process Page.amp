@@ -53,7 +53,7 @@
             Redirect('https://cloud.marketing.corehome.mx/001-core-aliados-error',true);
         }
     } catch (e) {
-        Redirect('https://cloud.marketing.corehome.mx/001-core-aliados-gracias',true);
+        Redirect('https://cloud.marketing.corehome.mx/001-core-aliados-error',true);
     }
     function retrievetoken(){
         var oldToken = Variable.GetValue("@oldToken");

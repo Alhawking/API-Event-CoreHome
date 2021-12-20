@@ -50,7 +50,7 @@
             Redirect('https://cxloud.marketing.corehome.mx/001-core-aliados-gracias',true);
         }
         else {
-            Redirect('https://cloud.marketing.corehome.mx/001-core-aliados-error',true);
+            Redirect('https://www.google.com',true);
         }
     } catch (e) {
         //Write(Stringify(e));

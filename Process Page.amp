@@ -46,9 +46,8 @@
             }
         };
         var resp = HTTP.Post('https://mc3bnyj1wyz-ngdxnqpgc4gn8j1y.rest.marketingcloudapis.com/interaction/v1/events', "application/json", Stringify(jsonBody), headerNames, headerValues);
-        Write(resp.StatusCode);
         if(resp.StatusCode == 201) {
-            Redirect('https://cloud.marketing.corehome.mx/001-core-aliados-gracias',true);
+            Redirect('https://cxloud.marketing.corehome.mx/001-core-aliados-gracias',true);
         }
         else {
             Redirect('https://cloud.marketing.corehome.mx/001-core-aliados-error',true);
